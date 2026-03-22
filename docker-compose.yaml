@@ -291,7 +291,7 @@ services:
       APP_RABBIT_DLQ_PAYMENT_APPROVED_DEBUG: "order.payment.approved.dlq"
       APP_RABBIT_ROUTING_KEY_PAYMENT_APPROVED: "payment.approved"
       APP_RABBIT_QUEUE_PAYMENT_PENDING_DEBUG: "order.payment.pending"
-      APP_RABBIT_DLQ_PAYMENT_PENDING_DEBUG: "order.payment.pending.dql"
+      APP_RABBIT_DLQ_PAYMENT_PENDING_DEBUG: "order.payment.pending.dlq"
       APP_RABBIT_ROUTING_KEY_PAYMENT_PENDING: "payment.pending"
       APP_RABBIT_QUEUE_PAYMENT_FAILED_DEBUG: "payment.failed"
       APP_RABBIT_DLQ_PAYMENT_FAILED_DEBUG: "payment.failed.dlq"
