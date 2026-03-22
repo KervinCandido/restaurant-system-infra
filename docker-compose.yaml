@@ -3,12 +3,14 @@ volumes:
   db_data_iam: {}
   db_data_restaurant: {}
   db_data_order: {}
+  db_data_payment: {}
   rabbitmq_data: {}
 ## Networks
 networks:
   app_net:
     driver: bridge
-
+  external-network:
+    driver: bridge
 services:
   ### API Gateway
   kong-service:
@@ -35,6 +37,7 @@ services:
           memory: 256M
     networks:
       - app_net
+      - external-network
     restart: always
   ### Mensageria
   rabbitmq:
@@ -122,6 +125,29 @@ services:
       start_period: 10s
     volumes:
       - db_data_order:/var/lib/postgresql/data
+  payment-postgres:
+    image: postgres:17
+    container_name: pg-payment
+    restart: unless-stopped
+    networks: [app_net]
+    environment:
+      POSTGRES_DB: "${PAYMENT_DB_NAME}"
+      POSTGRES_USER: "${PAYMENT_DB_USER}"
+      POSTGRES_PASSWORD: "${PAYMENT_DB_PASSWORD}"
+      TZ: "${TIME_ZONE}"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PAYMENT_DB_USER} -d ${PAYMENT_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+    volumes:
+      - db_data_payment:/var/lib/postgresql/data
   ### Aplicações
   identity-access-management:
     image: kervincandido/identity-access-management:latest
@@ -216,3 +242,57 @@ services:
       timeout: 5s
       retries: 10
       start_period: 25s
+  payment:
+    image: kervincandido/restaurant-payment-service:latest
+    container_name: payment
+    restart: unless-stopped
+    networks: [app_net]
+    depends_on:
+      payment-postgres:
+        condition: service_healthy
+      rabbitmq: 
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: "${PAYMENT_SPRING_PROFILES}"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://payment-postgres:5432/${PAYMENT_DB_NAME}"
+      SPRING_DATASOURCE_USERNAME: "${PAYMENT_DB_USER}"
+      SPRING_DATASOURCE_PASSWORD: "${PAYMENT_DB_PASSWORD}"
+      SPRING_RABBITMQ_HOST: "restaurant-rabbitmq"
+      SPRING_RABBITMQ_PORT: "5672"
+      SPRING_RABBITMQ_USERNAME: "${RABBITMQ_USER}"
+      SPRING_RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      
+      APP_RABBIT_QUEUE_PAYMENT_ORDER_CREATED: "payment.order.created"
+      APP_RABBIT_DLQ_PAYMENT_ORDER_CREATED: "payment.order.created.dlq"
+      APP_RABBIT_ROUTING_KEY_ORDER_CREATED: "order.created"
+      
+      APP_RABBIT_QUEUE_PAYMENT_APPROVED_DEBUG: "order.payment.approved"
+      APP_RABBIT_DLQ_PAYMENT_APPROVED_DEBUG: "order.payment.approved.dlq"
+      APP_RABBIT_ROUTING_KEY_PAYMENT_APPROVED: "payment.approved"
+      
+      APP_RABBIT_QUEUE_PAYMENT_PENDING_DEBUG: "order.payment.pending"
+      APP_RABBIT_DLQ_PAYMENT_PENDING_DEBUG: "order.payment.pending.dql"
+      APP_RABBIT_ROUTING_KEY_PAYMENT_PENDING: "payment.pending"
+      
+      APP_RABBIT_QUEUE_PAYMENT_FAILED_DEBUG: "payment.failed"
+      APP_RABBIT_DLQ_PAYMENT_FAILED_DEBUG: "payment.failed.dlq"
+      APP_RABBIT_ROUTING_KEY_PAYMENT_FAILED: "payment.failed"
+      
+      APP_EXTERNAL_PAYMENT_BASE_URL: "http://kong-service:8000"
+      APP_EXTERNAL_PAYMENT_REQUEST_PATH: /external-payment/requisicao
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=85 -XX:+UseSerialGC -Xms512m -Xmx512m"
+      TZ: "${TIME_ZONE}"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
+  procpag:
+    image: docker.io/erickemprobr/procpag:latest
+    platform: linux/amd64
+    container_name: payment-procpag
+    ports:
+      - "${PROCPAG_PORT:-8089}:8089"
+    restart: unless-stopped
+    networks:
+      - external-network
