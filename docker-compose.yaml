@@ -261,7 +261,7 @@ services:
       SPRING_RABBITMQ_PORT: "5672"
       SPRING_RABBITMQ_USERNAME: "${RABBITMQ_USER}"
       SPRING_RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
-      
+      SERVER_PORT: "8080"
       APP_RABBIT_QUEUE_PAYMENT_ORDER_CREATED: "payment.order.created"
       APP_RABBIT_DLQ_PAYMENT_ORDER_CREATED: "payment.order.created.dlq"
       APP_RABBIT_ROUTING_KEY_ORDER_CREATED: "order.created"
@@ -287,6 +287,12 @@ services:
         limits:
           cpus: '0.8'
           memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
   procpag:
     image: docker.io/erickemprobr/procpag:latest
     platform: linux/amd64
