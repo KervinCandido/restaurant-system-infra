@@ -58,4 +58,6 @@ Gateway -->> User : Detalhes dos pedidos do usuário
 == Recebe informações do processamento do pagamento ==
 PagamentoAprovado -->> Order : Pagamento aprovado
 PagamentoPendente -->> Order : Pagamento pendente pagamanto
+
+scale 0.8
 @enduml

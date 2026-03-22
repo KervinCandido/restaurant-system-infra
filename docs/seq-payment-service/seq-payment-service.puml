@@ -9,6 +9,7 @@ participant "API Gateway" as Gateway
 queue "payment.order.created" as PedidoCriado
 queue "order.payment.approved" as PagamentoAprovado
 queue "order.payment.pending" as PagamentoPendente
+queue "order.payment.failed" as PagamentoFalhou
 participant "Payment-Service" as Payment
 
 
@@ -26,7 +27,7 @@ else #DarkSalmon Falha no Processamento/Serviço Fora
     Payment -->> PagamentoPendente : Publica evento de pagamento pendente
 end
 
-== Fluxo de Reprocessamente Pagamento ==
+== Fluxo de Reprocessamento de Pagamento ==
 PagamentoPendente --> Payment: Tentar novamente solicitações que falharam
 Payment -->> Payment : Processa pagamento
 Payment -> Gateway : POST /payments/process
@@ -35,9 +36,13 @@ Gateway -> ExtPayment : Encaminha requisição de pagamento
 ExtPayment --> Gateway : Retorna resultado do processamento
 Gateway --> Payment : Retorna resultado
 alt#Gold #LightGreen Pagamento Aprovado
+    Payment -->> Payment: Processa pagamento aprovado
     Payment -->> PagamentoAprovado : Publica evento de pagamento aprovado
-else #DarkSalmon Falha no Processamento/Serviço Fora
-    Payment -->> PagamentoPendente : Publica novamente para tentar posteriormente
+else #e74c3c Atingiu o máximo de tentativas
+  Payment -->> Payment: Processa pagamento falhou
+  Payment -->> PagamentoFalhou: Publica evento de falha
+else #DarkSalmon Ainda não Atingiu o máximo de tentativas
+   Payment -->> Payment : Mantém como pendente
 end
 
 scale 0.8
