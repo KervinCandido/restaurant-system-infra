@@ -71,6 +71,80 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Consulta Todos Tipos de Usuário",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{basePath}}/user-types",
+              "host": [
+                "{{basePath}}"
+              ],
+              "path": [
+                "user-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cria Novo Tipo de Usuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "// pega o id do body\r",
+                  "pm.collectionVariables.set(\"usertypeId\", json.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "password",
+                  "value": "dev",
+                  "type": "string"
+                },
+                {
+                  "key": "username",
+                  "value": "dev",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"MANAGER\",\r\n  \"roles\": [\r\n    \"VIEW_USER_TYPE\",\r\n    \"CREATE_USER_TYPE\",\r\n    \"UPDATE_USER_TYPE\",\r\n    \"VIEW_RESTAURANT_MANAGEMENT\",\r\n    \"CREATE_MENU_ITEM\",\r\n    \"VIEW_RESTAURANT\",\r\n    \"CREATE_USER\",\r\n    \"VIEW_MENU_ITEM\",\r\n    \"VIEW_USER\",\r\n    \"VIEW_ROLE\",\r\n    \"DELETE_MENU_ITEM\",\r\n    \"UPDATE_USER\",\r\n    \"CREATE_RESTAURANT\",\r\n    \"UPDATE_MENU_ITEM\"\r\n  ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{basePath}}/user-types",
+              "host": [
+                "{{basePath}}"
+              ],
+              "path": [
+                "user-types"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -701,6 +775,383 @@
           }
         }
       ]
+    },
+    {
+      "name": "Pagamento Externo",
+      "item": [
+        {
+          "name": "Pagamento Externo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"valor\": 150,\r\n    \"pagamento_id\": \"{{$randomUUID}}\",\r\n    \"cliente_id\": \"{{$randomUUID}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost/external-payment/requisicao",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "external-payment",
+                "requisicao"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pagamento Externo Consulta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost/external-payment/requisicao/{{$randomUUID}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "external-payment",
+                "requisicao",
+                "{{$randomUUID}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Apresentação",
+      "item": [
+        {
+          "name": "Auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "// pega o id do body\r",
+                  "if (pm.response.code == 200)\r",
+                  "    pm.collectionVariables.set(\"token\", json.token);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"dev\",\r\n    \"password\": \"developer\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{basePath}}/auth",
+              "host": [
+                "{{basePath}}"
+              ],
+              "path": [
+                "auth"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cria Usuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "// pega o id do body\r",
+                  "pm.collectionVariables.set(\"userId\", json.id);\r",
+                  "\r",
+                  "// (opcional) valida que veio\r",
+                  "pm.test(\"User id foi retornado\", () => {\r",
+                  "  pm.expect(json).to.have.property(\"id\");\r",
+                  "  pm.expect(json.id).to.match(\r",
+                  "    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i\r",
+                  "  );\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set(\"current_username\", pm.variables.replaceIn('{{$randomUserName}}'));\r",
+                  "pm.collectionVariables.set(\"current_password\", pm.variables.replaceIn('{{$randomPassword}}'));"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"{{$randomFirstName}} {{$randomLastName}}\",\r\n  \"username\": \"{{current_username}}\",\r\n  \"email\": \"{{$randomEmail}}\",\r\n  \"address\": {\r\n    \"street\": \"{{$randomStreetName}}\",\r\n    \"number\": \"{{$randomInt}}\",\r\n    \"complement\": \"N/A\",\r\n    \"city\": \"{{$randomCity}}\",\r\n    \"state\": \"SP\",\r\n    \"zipCode\": \"01310-100\"\r\n  },\r\n  \"userTypeId\": 3,\r\n  \"password\": \"{{current_password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{basePath}}/user",
+              "host": [
+                "{{basePath}}"
+              ],
+              "path": [
+                "user"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Auth Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "if (pm.response.code == 200)\r",
+                  "    pm.collectionVariables.set(\"token\", json.token);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"{{current_username}}\",\r\n    \"password\": \"{{current_password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{basePath}}/auth",
+              "host": [
+                "{{basePath}}"
+              ],
+              "path": [
+                "auth"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Consulta Todos os Restaurantes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{basePath}}/restaurants",
+              "host": [
+                "{{basePath}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cria Pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "// pega o id do body\r",
+                  "pm.collectionVariables.set(\"orderId\", json.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"items\": [\r\n    {\r\n      \"menuItemId\": 1,\r\n      \"quantity\": 2\r\n    },\r\n    {\r\n      \"menuItemId\": 2,\r\n      \"quantity\": 1\r\n    }\r\n  ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{basePath}}/restaurants/1/orders",
+              "host": [
+                "{{basePath}}"
+              ],
+              "path": [
+                "restaurants",
+                "1",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Busca pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{basePath}}/restaurants/1/orders/{{orderId}}",
+              "host": [
+                "{{basePath}}"
+              ],
+              "path": [
+                "restaurants",
+                "1",
+                "orders",
+                "{{orderId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirma Pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{basePath}}/restaurants/1/orders/confirm/{{orderId}}",
+              "host": [
+                "{{basePath}}"
+              ],
+              "path": [
+                "restaurants",
+                "1",
+                "orders",
+                "confirm",
+                "{{orderId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Busca pedidos do usuário logado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{basePath}}/restaurants/1/orders?statusOrders=DRAFT,CREATED,PENDING_PAY",
+              "host": [
+                "{{basePath}}"
+              ],
+              "path": [
+                "restaurants",
+                "1",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "statusOrders",
+                  "value": "DRAFT,CREATED,PENDING_PAY"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "auth": {
@@ -739,8 +1190,36 @@
   ],
   "variable": [
     {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "restaurantId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "menuitemId",
+      "value": ""
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    },
+    {
       "key": "basePath",
-      "value": "localhost:80/"
+      "value": "localhost:80"
+    },
+    {
+      "key": "current_username",
+      "value": ""
+    },
+    {
+      "key": "current_password",
+      "value": ""
     }
   ]
 }
