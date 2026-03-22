@@ -19,3 +19,10 @@ services:
       - name: rota-orders
         paths: ["~/restaurants/\\d+/orders"]
         strip_path: false
+  - name: external-payment-service
+    url: http://procpag:8089
+    routes:
+      - name: external-payment-route
+        paths:
+          - /external-payment
+          
