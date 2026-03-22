@@ -1,0 +1,21 @@
+_format_version: "3.0"
+
+services:
+  - name: identity-access-management
+    url: http://identity-access-management:8080
+    routes:
+      - name: rota-identity-access-management
+        paths: ["/user", "/auth", "/roles", "/user-types"]
+        strip_path: false
+  - name: restaurant
+    url: http://restaurant:8080
+    routes:
+      - name: rota-restaurant
+        paths: ["/restaurants"]
+        strip_path: false
+  - name: order
+    url: http://order:8080
+    routes:
+      - name: rota-orders
+        paths: ["~/restaurants/\\d+/orders"]
+        strip_path: false

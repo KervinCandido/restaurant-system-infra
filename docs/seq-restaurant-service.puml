@@ -1,0 +1,54 @@
+@startuml
+!theme sunlust
+autonumber
+skinparam Style awesome
+skinparam SequenceMessageAlignment center
+
+actor "Dono de Restaurante" as User
+participant "API Gateway" as Gateway
+participant "Resturante-Service" as Resturante
+
+queue "order.restaurant.created" as RestauranteCriado
+
+queue "order.menuitem.created" as MenuItemCriado
+queue "order.menuitem.updated" as MenuItemAlterado
+
+queue "restaurant.user.created" as RestaurantUsuarioCriado
+queue "restaurant.user.updated" as RestaurantUsuarioAlterado
+queue "restaurant.user.deleted" as RestaurantUsuarioDeletado
+
+
+== Recebe Usuários ==
+RestaurantUsuarioCriado -->> Resturante : Consume Evento de Usuário Criado
+RestaurantUsuarioAlterado -->> Resturante : Consume Evento de Usuário Alterado
+RestaurantUsuarioDeletado -->> Resturante : Consume Evento de Usuário Delete
+
+== Fluxo de Criação de Restaurante ==
+User -> Gateway : POST /restaurants
+note right of Gateway: Validação centralizada do JWT
+Gateway -> Resturante : Encaminha com ID do Usuário (extraído do JWT)
+Resturante -> Resturante : Cria Restaurante
+Resturante -->> Gateway : 201 Created
+Resturante -->> RestaurantUsuarioCriado : Evento de restaurante criado
+Gateway -->> User : Retorna Restaurante
+
+== Fluxo de Adicionar novo item de Cardápio (Menu) ==
+User -> Gateway : POST /restaurants/{restaurant-id}/menu-item
+note right of Gateway: Validação centralizada do JWT
+Gateway -> Resturante : Encaminha com ID do Usuário (extraído do JWT)
+Resturante -> Resturante : Altera itens
+Resturante -->> Gateway : 200 OK
+Resturante -->> MenuItemCriado : Evento de novo item no cardápio
+Gateway -->> User : Retorna se alteração efetuada
+
+
+== Fluxo de Alterar item de Cardápio (Menu) ==
+User -> Gateway : PUT /restaurants/{restaurant-id}/menu-item/{menu-item-id}
+note right of Gateway: Validação centralizada do JWT
+Gateway -> Resturante : Encaminha com ID do Usuário (extraído do JWT)
+Resturante -> Resturante : Altera itens
+Resturante -->> Gateway : 200 OK
+Resturante -->> MenuItemAlterado : Evento de item no cardápio alterado
+Gateway -->> User : Retorna se alteração efetuada
+
+@enduml

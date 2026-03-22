@@ -1,0 +1,17 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Diagrama de Contexto do Sistema (C4 Nível 1)
+
+Person(cliente, "Cliente", "Usuário que realiza cadastro, login e faz pedidos de refeição.")
+Person(dono, "Dono de Restaurante", "Usuário que gerencia o cadastro do restaurante e o cardápio.")
+
+System(sistema, "Plataforma de Pedidos", "Sistema que gerencia autenticação, pedidos, pagamentos e restaurantes via API Gateway.")
+
+System_Ext(pagamento_externo, "API Pagamento Externo", "Serviço externo responsável por processar e autorizar os pagamentos.")
+
+Rel(cliente, sistema, "Realiza cadastro, login e envia pedidos", "HTTPS/JSON")
+Rel(dono, sistema, "Realiza login, cadastra restaurante e atualiza cardápio", "HTTPS/JSON")
+Rel(sistema, pagamento_externo, "Solicita processamento de pagamento", "HTTPS/JSON")
+
+@enduml

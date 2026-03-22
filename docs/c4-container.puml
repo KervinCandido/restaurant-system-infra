@@ -1,0 +1,49 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Diagrama de Contêineres do Sistema (C4 Nível 2)
+
+Person(cliente, "Cliente", "Usuário que realiza cadastro, login e faz pedidos.")
+Person(dono, "Dono de Restaurante", "Gerencia restaurante e cardápio.")
+
+System_Ext(pagamento_externo, "API Pagamento Externo", "Processa pagamentos.")
+
+System_Boundary(sistema, "Plataforma de Pedidos") {
+    Container(api_gateway, "API Gateway", "Java/Spring Boot", "Ponto de entrada, roteamento e validação de JWT.")
+
+    Container(auth_service, "Auth Service", "Java/Spring Boot", "Gerencia cadastro e autenticação de usuários.")
+    ContainerDb(auth_db, "Auth DB", "PostgreSQL", "Armazena dados de clientes e credenciais.")
+
+    Container(pedido_service, "Pedido Service", "Java/Spring Boot", "Gerencia criação e acompanhamento de pedidos.")
+    ContainerDb(pedido_db, "Pedido DB", "PostgreSQL", "Armazena informações dos pedidos.")
+
+    Container(pagamento_service, "Pagamento Service", "Java/Spring Boot", "Gerencia processamento de pagamentos e resiliência.")
+    ContainerDb(pagamento_db, "Pagamento DB", "PostgreSQL", "Armazena status de pagamentos.")
+
+    Container(restaurante_service, "Restaurante Service", "Java/Spring Boot", "Gerencia dados de restaurantes e itens do cardápio.")
+    ContainerDb(restaurante_db, "Restaurante DB", "PostgreSQL", "Armazena cardápios e restaurantes.")
+
+    ContainerQueue(message_broker, "Message Broker", "RabbitMQ", "Filas: PedidoCriado, PedidoAprovado, PedidoPendente")
+}
+
+Rel(cliente, api_gateway, "HTTPS/JSON", "Usa")
+Rel(dono, api_gateway, "HTTPS/JSON", "Usa")
+
+Rel(api_gateway, auth_service, "HTTPS/JSON", "Roteia requisições de auth")
+Rel(api_gateway, pedido_service, "HTTPS/JSON", "Roteia requisições de pedidos")
+Rel(api_gateway, restaurante_service, "HTTPS/JSON", "Roteia requisições de restaurante")
+
+Rel(auth_service, auth_db, "JDBC", "Lê/Escreve")
+Rel(pedido_service, pedido_db, "JDBC", "Lê/Escreve")
+Rel(pagamento_service, pagamento_db, "JDBC", "Lê/Escreve")
+Rel(restaurante_service, restaurante_db, "JDBC", "Lê/Escreve")
+
+Rel(pedido_service, message_broker, "AMQP", "Publica em PedidoCriadoQueue")
+Rel(message_broker, pagamento_service, "AMQP", "Consome de PedidoCriadoQueue")
+
+Rel(pagamento_service, pagamento_externo, "HTTPS/JSON", "Processa pagamento")
+
+Rel(pagamento_service, message_broker, "AMQP", "Publica em PedidoAprovadoQueue / PedidoPendenteQueue")
+Rel(message_broker, pedido_service, "AMQP", "Consome atualizações de status")
+
+@enduml

@@ -1,0 +1,61 @@
+@startuml
+!theme sunlust
+autonumber
+skinparam Style awesome
+skinparam SequenceMessageAlignment center
+
+actor "Cliente" as User
+participant "API Gateway" as Gateway
+participant "Order-Service" as Order
+
+queue "order.restaurant.created" as RestauranteCriado
+queue "order.menuitem.created" as MenuItemCriado
+queue "order.menuitem.updated" as MenuItemAlterado
+
+queue "payment.order.created" as PedidoCriado
+queue "order.payment.approved" as PagamentoAprovado
+queue "order.payment.pending" as PagamentoPendente
+
+
+== Recebe Dados Restaurantes e Cardápio ==
+RestauranteCriado -->> Order : Consume Evento de restaurante criado
+MenuItemCriado -->> Order : Consume Evento de novo item do cardápio
+MenuItemAlterado -->> Order : Consume Evento de alteção em item do cardápio
+
+== Fluxo de Criação de Pedido ==
+User -> Gateway : POST /restaurants/{restaurant-id}/orders
+note right of Gateway: Validação centralizada do JWT
+Gateway -> Order : Encaminha com ID do Usuário (extraído do JWT)
+Order -> Order : Cria Pedido
+Order -->> Gateway : 201 Created
+Gateway -->> User : Retorna Pedido
+
+== Fluxo de Consulta de Pedido ==
+User -> Gateway : GET /restaurants/{restaurant-id}/orders/{order-id}
+note right of Gateway: Validação centralizada do JWT
+Gateway -> Order : Encaminha com ID do Usuário (extraído do JWT)
+Order -> Order : Cria Pedido
+Order -->> Gateway : 200 OK
+Gateway -->> User : Detalhes do pedido
+
+== Fluxo de Confirmação de Pedido ==
+User -> Gateway : POST /restaurants/{restaurant-id}/orders/confirm/{order-id}
+note right of Gateway: Validação centralizada do JWT
+Gateway -> Order : Encaminha com ID do Usuário (extraído do JWT)
+Order -> Order : Cria Pedido
+Order -->> Gateway : 200 Created
+Order -->> PedidoCriado : Pedido confirmado e enviado para processar pagamento
+Gateway -->> User : Retorna Pedido
+
+== Fluxo de Consulta de Todos Pedidos do Usuário ==
+User -> Gateway : GET /restaurants/{restaurant-id}/orders
+note right of Gateway: Validação centralizada do JWT
+Gateway -> Order : Encaminha com ID do Usuário (extraído do JWT)
+Order -> Order : Cria Pedido
+Order -->> Gateway : 200 OK
+Gateway -->> User : Detalhes dos pedidos do usuário
+
+== Recebe informações do processamento do pagamento ==
+PagamentoAprovado -->> Order : Pagamento aprovado
+PagamentoPendente -->> Order : Pagamento pendente pagamanto
+@enduml

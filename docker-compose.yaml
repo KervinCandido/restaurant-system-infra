@@ -1,0 +1,218 @@
+### Volumes
+volumes:
+  db_data_iam: {}
+  db_data_restaurant: {}
+  db_data_order: {}
+  rabbitmq_data: {}
+## Networks
+networks:
+  app_net:
+    driver: bridge
+
+services:
+  ### API Gateway
+  kong-service:
+    image: kong:3.9.1-ubuntu
+    container_name: kong-gateway
+    volumes:
+      - ./kong:/usr/local/kong/declarative
+      - ./certs:/etc/kong/certs
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
+      KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+    ports:
+      - "${KONG_PORT_HTTP:-80}:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 256M
+    networks:
+      - app_net
+    restart: always
+  ### Mensageria
+  rabbitmq:
+    image: rabbitmq:3
+    restart: unless-stopped
+    networks: [app_net]
+    container_name: restaurant-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD}"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/mnesia/
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 256M
+  ### Bancos de Dados
+  iam-postgres:
+    image: postgres:17
+    container_name: pg-iam
+    restart: unless-stopped
+    networks: [app_net]
+    environment:
+      POSTGRES_DB: "${IAM_DB_NAME}"
+      POSTGRES_USER: "${IAM_DB_USER}"
+      POSTGRES_PASSWORD: "${IAM_DB_PASSWORD}"
+      TZ: "${TIME_ZONE}"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${IAM_DB_USER} -d ${IAM_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+    volumes:
+      - db_data_iam:/var/lib/postgresql/data
+  restaurant-postgres:
+    image: postgres:17
+    container_name: pg-restaurant
+    restart: unless-stopped
+    networks: [app_net]
+    environment:
+      POSTGRES_DB: "${RESTAURANT_DB_NAME}"
+      POSTGRES_USER: "${RESTAURANT_DB_USER}"
+      POSTGRES_PASSWORD: "${RESTAURANT_DB_PASSWORD}"
+      TZ: "${TIME_ZONE}"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${RESTAURANT_DB_USER} -d ${RESTAURANT_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+    volumes:
+      - db_data_restaurant:/var/lib/postgresql/data
+  order-postgres:
+    image: postgres:17
+    container_name: pg-order
+    restart: unless-stopped
+    networks: [app_net]
+    environment:
+      POSTGRES_DB: "${ORDER_DB_NAME}"
+      POSTGRES_USER: "${ORDER_DB_USER}"
+      POSTGRES_PASSWORD: "${ORDER_DB_PASSWORD}"
+      TZ: "${TIME_ZONE}"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ORDER_DB_USER} -d ${ORDER_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+    volumes:
+      - db_data_order:/var/lib/postgresql/data
+  ### Aplicações
+  identity-access-management:
+    image: kervincandido/identity-access-management:latest
+    container_name: identity-access-management
+    restart: unless-stopped
+    networks: [app_net]
+    depends_on:
+      iam-postgres:
+        condition: service_healthy
+      rabbitmq: 
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: "${IAM_SPRING_PROFILES}"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://iam-postgres:5432/${IAM_DB_NAME}"
+      SPRING_DATASOURCE_USERNAME: "${IAM_DB_USER}"
+      SPRING_DATASOURCE_PASSWORD: "${IAM_DB_PASSWORD}"
+      MQ_HOST: "restaurant-rabbitmq"
+      MQ_USER: "${RABBITMQ_USER}"
+      MQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=85 -XX:+UseSerialGC -Xms512m -Xmx512m"
+      TZ: "${TIME_ZONE}"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+  restaurant:
+    image: kervincandido/restaurant:latest
+    container_name: restaurant
+    restart: unless-stopped
+    networks: [app_net]
+    depends_on:
+      restaurant-postgres:
+        condition: service_healthy
+      rabbitmq: 
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: "${RESTAURANT_SPRING_PROFILES}"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://restaurant-postgres:5432/${RESTAURANT_DB_NAME}"
+      SPRING_DATASOURCE_USERNAME: "${RESTAURANT_DB_USER}"
+      SPRING_DATASOURCE_PASSWORD: "${RESTAURANT_DB_PASSWORD}"
+      MQ_HOST: "restaurant-rabbitmq"
+      MQ_USER: "${RABBITMQ_USER}"
+      MQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=85 -XX:+UseSerialGC -Xms512m -Xmx512m"
+      TZ: "${TIME_ZONE}"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+  order:
+    image: kervincandido/order:latest
+    container_name: order
+    restart: unless-stopped
+    networks: [app_net]
+    depends_on:
+      order-postgres:
+        condition: service_healthy
+      rabbitmq: 
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: "${ORDER_SPRING_PROFILES}"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://order-postgres:5432/${ORDER_DB_NAME}"
+      SPRING_DATASOURCE_USERNAME: "${ORDER_DB_USER}"
+      SPRING_DATASOURCE_PASSWORD: "${ORDER_DB_PASSWORD}"
+      MQ_HOST: "restaurant-rabbitmq"
+      MQ_USER: "${RABBITMQ_USER}"
+      MQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=85 -XX:+UseSerialGC -Xms512m -Xmx512m"
+      TZ: "${TIME_ZONE}"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
