@@ -41,7 +41,8 @@ Rel(restaurante_service, restaurante_db, "JDBC", "Lê/Escreve")
 Rel(pedido_service, message_broker, "AMQP", "Publica em PedidoCriadoQueue")
 Rel(message_broker, pagamento_service, "AMQP", "Consome de PedidoCriadoQueue")
 
-Rel(pagamento_service, pagamento_externo, "HTTPS/JSON", "Processa pagamento")
+Rel(pagamento_service, api_gateway, "HTTPS/JSON", "Solicita processamento de pagamento")
+Rel(api_gateway, pagamento_externo, "HTTPS/JSON", "Encaminha para Processa de pagamento")
 
 Rel(pagamento_service, message_broker, "AMQP", "Publica em PedidoAprovadoQueue / PedidoPendenteQueue")
 Rel(message_broker, pedido_service, "AMQP", "Consome atualizações de status")
