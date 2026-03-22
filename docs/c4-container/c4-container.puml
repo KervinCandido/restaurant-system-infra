@@ -47,4 +47,5 @@ Rel(api_gateway, pagamento_externo, "HTTPS/JSON", "Encaminha para Processa de pa
 Rel(pagamento_service, message_broker, "AMQP", "Publica em PedidoAprovadoQueue / PedidoPendenteQueue")
 Rel(message_broker, pedido_service, "AMQP", "Consome atualizações de status")
 
+scale 0.8
 @enduml

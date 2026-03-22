@@ -2,7 +2,7 @@
 
 A arquitetura do sistema, representada no diagrama de contêineres C4, descreve uma plataforma de pedidos para restaurantes projetada com base em uma arquitetura de microsserviços. A seguir, são detalhados os principais componentes e suas interações.
 
-[C4 Container](./c4_container_img.png)
+![c4_container_img.png](./c4_container_img.png)
 
 ### Atores
 
