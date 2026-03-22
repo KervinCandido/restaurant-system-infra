@@ -4,7 +4,7 @@ autonumber
 skinparam Style awesome
 skinparam SequenceMessageAlignment center
 
-actor "Cliente" as User
+actor "Usuário" as User
 participant "API Gateway" as Gateway
 participant "Identity Access Manager Service" as IAM
 queue "restaurant.user.created" as RestaurantUsuarioCriado
@@ -41,4 +41,7 @@ Gateway -> IAM : Roteia para Login
 IAM -> IAM : Valida Credenciais
 IAM -->> Gateway : 200 Autenticado com Sucesso
 Gateway -->> User : JWT Token
+
+scale 0.8
+
 @enduml
