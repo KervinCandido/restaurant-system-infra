@@ -1,0 +1,44 @@
+@startuml
+!theme sunlust
+autonumber
+skinparam Style awesome
+skinparam SequenceMessageAlignment center
+
+participant "External Payment API" as ExtPayment
+participant "API Gateway" as Gateway
+queue "payment.order.created" as PedidoCriado
+queue "order.payment.approved" as PagamentoAprovado
+queue "order.payment.pending" as PagamentoPendente
+participant "Payment-Service" as Payment
+
+
+== Fluxo de Processamento de Pagamento ==
+PedidoCriado -->> Payment : Consume evento de pedido criado
+Payment -->> Payment : Processa pagamento
+Payment -> Gateway : POST /payments/process
+note right of Gateway: Roteia para o serviço de pagamento externo
+Gateway -> ExtPayment : Encaminha requisição de pagamento
+ExtPayment --> Gateway : Retorna resultado do processamento
+Gateway --> Payment : Retorna resultado
+alt#Gold #LightGreen Pagamento Aprovado
+    Payment -->> PagamentoAprovado : Publica evento de pagamento aprovado
+else #DarkSalmon Falha no Processamento/Serviço Fora
+    Payment -->> PagamentoPendente : Publica evento de pagamento pendente
+end
+
+== Fluxo de Reprocessamente Pagamento ==
+PagamentoPendente --> Payment: Tentar novamente solicitações que falharam
+Payment -->> Payment : Processa pagamento
+Payment -> Gateway : POST /payments/process
+note right of Gateway: Roteia para o serviço de pagamento externo
+Gateway -> ExtPayment : Encaminha requisição de pagamento
+ExtPayment --> Gateway : Retorna resultado do processamento
+Gateway --> Payment : Retorna resultado
+alt#Gold #LightGreen Pagamento Aprovado
+    Payment -->> PagamentoAprovado : Publica evento de pagamento aprovado
+else #DarkSalmon Falha no Processamento/Serviço Fora
+    Payment -->> PagamentoPendente : Publica novamente para tentar posteriormente
+end
+
+scale 0.8
+@enduml

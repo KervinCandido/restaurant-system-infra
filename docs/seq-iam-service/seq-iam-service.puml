@@ -4,7 +4,7 @@ autonumber
 skinparam Style awesome
 skinparam SequenceMessageAlignment center
 
-actor "Cliente" as User
+actor "Usuário" as User
 participant "API Gateway" as Gateway
 participant "Identity Access Manager Service" as IAM
 queue "restaurant.user.created" as RestaurantUsuarioCriado
