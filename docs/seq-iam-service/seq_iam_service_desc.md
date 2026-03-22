@@ -3,7 +3,7 @@ Utilizando o seguinte diagrama de sequência do serviço de
 
 ### Fluxos de Operações do Usuário
 
-![seq_payment_service_img.png](./seq_payment_service_img.png)
+![seq_iam_service_img.png](./seq_iam_service_img.png)
 
 #### 1. Cadastro de Novo Usuário
 

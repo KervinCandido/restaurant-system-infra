@@ -41,4 +41,7 @@ Gateway -> IAM : Roteia para Login
 IAM -> IAM : Valida Credenciais
 IAM -->> Gateway : 200 Autenticado com Sucesso
 Gateway -->> User : JWT Token
+
+scale 0.8
+
 @enduml
