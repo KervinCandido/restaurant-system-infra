@@ -21,7 +21,7 @@ O sistema foi desenhado seguindo os princípios de microserviços, utilizando o 
 
 ### Repositórios
 
-* [Restaurant System Infra](https://github.com/KervinCandido/restaurant-system-infra) **(Esse Repositório)**
+* [Restaurant System Infra](https://github.com/KervinCandido/restaurant-system-infra) **(Orquestrador)**
 * [Identity Access Management](https://github.com/KervinCandido/identity-access-management)
 * [Restaurant](https://github.com/KervinCandido/restaurant)
 * [Order](https://github.com/KervinCandido/order)
