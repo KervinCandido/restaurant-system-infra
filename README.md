@@ -15,7 +15,7 @@ O sistema foi desenhado seguindo os princípios de microserviços, utilizando o 
 | **Identity Service**   | Gestão de usuários, roles e tokens JWT      | `kervincandido/identity-access-management` |
 | **Restaurant Service** | Gestão de cardápios, mesas e horários      | `kervincandido/restaurant`                 |
 | **Order Service**      | Fluxo de pedidos e integração com cozinha   | `kervincandido/order`                      |
-| **Payment Service**    | Integração com gateways de pagamento        | `seu-user/restaurant-payment-service`      |
+| **Payment Service**    | Integração com gateways de pagamento        | `kervincandido/restaurant-payment-service`      |
 
 ---
 
