@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Entrega do Projeto Final</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 2em;
+        }
+        h1, h2, h3, h4, h5 {
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f0f0f0;
+            padding: 2px 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        pre {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f0f0f0;
+            padding: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #cccccc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Relatório de Entrega do Projeto Final</h1>
+    <p><strong>Curso:</strong> Pós-Graduação em Arquitetura e Desenvolvimento em JAVA</p>
+    <p><strong>Projeto:</strong> Tech Challenge - Sistema de Gerenciamento de Restaurantes</p>
+
+    <hr>
+
+    <h2>Equipe</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>RM</th>
+                <th>E-mail</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Alexandre Belisário Duarte Leite de Andrade</td>
+                <td>RM367163</td>
+                <td>alexbdla@gmail.com</td>
+            </tr>
+            <tr>
+                <td>Kervin Sama Candido da Silva</td>
+                <td>RM367345</td>
+                <td>kervincandido@gmail.com</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>Links do Projeto</h2>
+    <ul>
+        <li><strong>Vídeo de Apresentação e Demonstração:</strong> <a href="https://youtu.be/iyzfkwsPyxQ" target="_blank">https://youtu.be/iyzfkwsPyxQ</a></li>
+        <li><strong>Repositórios de Código-Fonte:</strong>
+            <ul>
+                <li><strong>Infraestrutura e Orquestração:</strong> <a href="https://github.com/KervinCandido/restaurant-system-infra" target="_blank">https://github.com/KervinCandido/restaurant-system-infra</a></li>
+                <li><strong>Serviço de Identidade (IAM):</strong> <a href="https://github.com/KervinCandido/identity-access-management" target="_blank">https://github.com/KervinCandido/identity-access-management</a></li>
+                <li><strong>Serviço de Restaurante:</strong> <a href="https://github.com/KervinCandido/restaurant" target="_blank">https://github.com/KervinCandido/restaurant</a></li>
+                <li><strong>Serviço de Pedidos:</strong> <a href="https://github.com/KervinCandido/order" target="_blank">https://github.com/KervinCandido/order</a></li>
+                <li><strong>Serviço de Pagamentos:</strong> <a href="https://github.com/alex-dev-br/restaurant-payment-service" target="_blank">https://github.com/alex-dev-br/restaurant-payment-service</a></li>
+            </ul>
+        </li>
+    </ul>
+
+    <hr>
+
+    <h2>1. Resumo do Projeto</h2>
+    <p>Este documento apresenta a solução técnica desenvolvida para o Tech Challenge, que consiste em um sistema de autogerenciamento de pedidos para uma rede de restaurantes. A solução foi projetada com base em uma arquitetura de microserviços, visando alta escalabilidade, resiliência e manutenibilidade.</p>
+    <p>O sistema permite que os clientes se cadastrem, façam pedidos, acompanhem o status e realizem o pagamento de forma totalmente digital. Do lado do restaurante, a plataforma oferece ferramentas para o gerenciamento de cardápios e o recebimento de pedidos.</p>
+
+    <h2>2. Arquitetura da Solução</h2>
+    <p>A arquitetura do sistema é fundamentada em princípios de microserviços, com cada serviço sendo responsável por uma funcionalidade de negócio específica. A comunicação entre os componentes é orquestrada por um API Gateway e um sistema de mensageria, garantindo desacoplamento e flexibilidade.</p>
+
+    <h3>2.1. Ecossistema de Microserviços</h3>
+    <ul>
+        <li><strong>Identity Service</strong>: Responsável pelo ciclo de vida dos usuários (cadastro, autenticação, autorização) e pela emissão de tokens JWT para proteger as APIs.</li>
+        <li><strong>Restaurant Service</strong>: Gerencia todas as informações relacionadas aos restaurantes, como cardápios, mesas e horários de funcionamento.</li>
+        <li><strong>Order Service</strong>: Orquestra o fluxo de criação e acompanhamento de pedidos, desde a seleção dos itens até a confirmação final.</li>
+        <li><strong>Payment Service</strong>: Processa os pagamentos de forma assíncrona, integrando-se com gateways de pagamento externos e tratando cenários de falha com uma lógica de retentativas.</li>
+    </ul>
+
+    <h3>2.2. Componentes de Infraestrutura</h3>
+    <ul>
+        <li><strong>Kong (API Gateway)</strong>: Atua como ponto de entrada único para todas as requisições, centralizando a autenticação, o roteamento para os serviços internos e a aplicação de políticas de segurança.</li>
+        <li><strong>RabbitMQ (Message Broker)</strong>: Facilita a comunicação assíncrona e confiável entre os microserviços, sendo crucial para fluxos como a confirmação de pedidos e o processamento de pagamentos.</li>
+        <li><strong>PostgreSQL (Banco de Dados)</strong>: Cada microserviço possui sua própria instância de banco de dados, garantindo isolamento de dados e autonomia para cada serviço.</li>
+        <li><strong>Docker</strong>: Todos os serviços e componentes de infraestrutura são containerizados, e a orquestração do ambiente é gerenciada com o Docker Compose, garantindo portabilidade e consistência entre os ambientes.</li>
+    </ul>
+
+    <h2>3. Detalhamento Técnico e Fluxos Operacionais</h2>
+    <p>A seguir, são apresentados os diagramas que ilustram a interação entre os componentes em diferentes cenários de uso.</p>
+
+    <h3>3.1. Arquitetura de Contêineres (Modelo C4)</h3>
+    <p>O diagrama abaixo oferece uma visão macro da arquitetura, mostrando os principais contêineres e suas interações.</p>
+    <img src="./c4-container/c4_container_img.png" alt="Diagrama de Contêineres C4">
+
+    <h3>3.2. Fluxo de Gerenciamento de Identidade (IAM)</h3>
+    <p>Este fluxo descreve como um usuário se cadastra e se autentica no sistema.</p>
+    <img src="./seq-iam-service/seq_iam_service_img.png" alt="Diagrama de Sequência do Serviço IAM">
+
+    <h3>3.3. Fluxo de Gerenciamento de Restaurantes</h3>
+    <p>Este fluxo mostra como um proprietário gerencia as informações de seu restaurante e cardápio.</p>
+    <img src="./seq-restaurant-service/seq_restaurant_service_img.png" alt="Diagrama de Sequência do Serviço de Restaurante">
+
+    <h3>3.4. Fluxo de Criação e Acompanhamento de Pedidos</h3>
+    <p>Este diagrama detalha o ciclo de vida de um pedido, desde a criação até a notificação para pagamento.</p>
+    <img src="./seq-order-service/seq_order_service_img.png" alt="Diagrama de Sequência do Serviço de Pedidos">
+
+    <h3>3.5. Fluxo de Processamento de Pagamentos</h3>
+    <p>Este fluxo ilustra como o pagamento é processado de forma assíncrona e resiliente.</p>
+    <img src="./seq-payment-service/seq_payment_service_img.png" alt="Diagrama de Sequência do Serviço de Pagamentos">
+
+    <h2>4. Como Executar o Projeto</h2>
+    <p>Para executar o ambiente completo em uma máquina local, siga os passos abaixo:</p>
+    <ol>
+        <li><strong>Pré-requisitos</strong>:
+            <ul>
+                <li>Docker e Docker Compose instalados.</li>
+                <li>Arquivo <code>.env</code> configurado na raiz do projeto de infraestrutura (um arquivo <code>.env.example</code> é fornecido como modelo).</li>
+            </ul>
+        </li>
+        <li><strong>Execução</strong>:
+            <pre><code># Clone o repositório de infraestrutura
+git clone https://github.com/KervinCandido/restaurant-system-infra.git
+cd restaurant-system-infra
+
+# Suba todo o ecossistema de serviços
+docker-compose up -d</code></pre>
+        </li>
+    </ol>
+
+    <h2>5. Conclusão</h2>
+    <p>O projeto entregue representa uma solução robusta e moderna para o problema proposto, aplicando conceitos avançados de arquitetura de software, como microserviços, comunicação assíncrona e design orientado a domínio. A solução está pronta para ser expandida com novas funcionalidades e para ser implantada em um ambiente de produção em nuvem.</p>
+
+</body>
+</html>
